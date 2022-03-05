@@ -6,10 +6,14 @@ target 'instagram' do
   use_frameworks!
 
   # Pods for instagram
+    pod 'Parse'
+    pod 'AlamofireImage'
 
   target 'instagramTests' do
     inherit! :search_paths
     # Pods for testing
+    pod 'Parse'
+    pod 'AlamofireImage'
   end
 
   target 'instagramUITests' do
