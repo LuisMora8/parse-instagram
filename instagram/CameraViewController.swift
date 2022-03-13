@@ -21,6 +21,7 @@ class CameraViewController: UIViewController, UIImagePickerControllerDelegate, U
         // Do any additional setup after loading the view.
     }
     
+    //creating post and adding to Parse
     @IBAction func onSubmit(_ sender: Any) {
         let post = PFObject(className: "Posts")
         
@@ -37,12 +38,13 @@ class CameraViewController: UIViewController, UIImagePickerControllerDelegate, U
             if success {
                 self.dismiss(animated: true, completion: nil)
             } else {
-                print("Error: \(error)")
+                print("Error: \(String(describing: error))")
             }
         }
         
     }
     
+    //opens camera/photolibrary
     @IBAction func onCameraButton(_ sender: Any) {
         //camera view controller
         let picker = UIImagePickerController()
@@ -60,6 +62,7 @@ class CameraViewController: UIViewController, UIImagePickerControllerDelegate, U
         present(picker, animated: true, completion: nil)
     }
     
+    //pick image
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         let image = info[.editedImage] as! UIImage
         
@@ -67,6 +70,8 @@ class CameraViewController: UIViewController, UIImagePickerControllerDelegate, U
         let scaledImage = image.af.imageAspectScaled(toFill: size)
         
         imageView.image = scaledImage
+        
+        
         
         dismiss(animated: true, completion: nil)
     }

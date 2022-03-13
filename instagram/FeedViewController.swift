@@ -14,11 +14,15 @@ class FeedViewController: UIViewController, UITableViewDelegate, UITableViewData
 
     @IBOutlet weak var tableView: UITableView!
     
+    //comment bar variables
     let commentBar = MessageInputBar()
     var showsCommentBar = false
     
+    //post variables
     var selectedPost: PFObject!
     var posts = [PFObject]()
+    
+    //query variables
     let query = PFQuery(className:"Posts")
     var queryLimit = 3
     let refreshControl = UIRefreshControl()
@@ -92,6 +96,7 @@ class FeedViewController: UIViewController, UITableViewDelegate, UITableViewData
         commentBar.inputTextView.resignFirstResponder()
     }
     
+    //setting up table view cells for the post
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
         let post = posts[section]
@@ -103,6 +108,7 @@ class FeedViewController: UIViewController, UITableViewDelegate, UITableViewData
         return posts.count
     }
     
+    //creating the proper tableview cell: post/comment/add-comment
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "PostCell") as! PostCell
@@ -117,10 +123,18 @@ class FeedViewController: UIViewController, UITableViewDelegate, UITableViewData
             
             cell.captionLabel.text = post["caption"] as? String
             
+            //setting image for post
             let imageFile = post["image"] as! PFFileObject
             let urlString = imageFile.url!
             let url = URL(string: urlString)!
             cell.photoView.af.setImage(withURL: url)
+            
+            //setting image from profile
+            if let profilePicFile = user["profilepic"] as? PFFileObject {
+                let profilePicurlString = profilePicFile.url!
+                let profilePicurl = URL(string: profilePicurlString)!
+                cell.profilePicView.af.setImage(withURL: profilePicurl)
+            }
             
             return cell
         } else if indexPath.row <= comments.count {
@@ -133,6 +147,13 @@ class FeedViewController: UIViewController, UITableViewDelegate, UITableViewData
             let user = comment["author"] as! PFUser
             cell.nameLabel.text = user.username
             
+            //setting comment profile pic image
+            if let profilePicFile = user["profilepic"] as? PFFileObject {
+                let profilePicurlString = profilePicFile.url!
+                let profilePicurl = URL(string: profilePicurlString)!
+                cell.profilePicView.af.setImage(withURL: profilePicurl)
+            }
+            
             return cell
         } else {
             
@@ -142,6 +163,7 @@ class FeedViewController: UIViewController, UITableViewDelegate, UITableViewData
         }
     }
     
+    //laoding the intial posts
     func loadPosts() {
 
         query.includeKeys(["author", "comments", "comments.author"])
@@ -157,10 +179,11 @@ class FeedViewController: UIViewController, UITableViewDelegate, UITableViewData
         
     }
     
+    //adding more posts
     func loadMorePosts() {
         queryLimit += 3
         
-        query.includeKey("author")
+        query.includeKeys(["author", "comments", "comments.author", "comments.author.profilepic"])
         query.limit = queryLimit
         query.order(byDescending: "updatedAt")
         
@@ -172,17 +195,20 @@ class FeedViewController: UIViewController, UITableViewDelegate, UITableViewData
         }
     }
     
+    //calling loadMorePosts when the bottom of the screen was reached
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         if indexPath.section + 1 == posts.count {
             loadMorePosts()
         }
     }
     
+    //refreshing screen
     @objc func onRefresh() {
         loadPosts()
         refreshControl.endRefreshing()
     }
     
+    //logout logic
     @IBAction func onLogoutButton(_ sender: Any) {
         PFUser.logOut()
         
@@ -194,6 +220,7 @@ class FeedViewController: UIViewController, UITableViewDelegate, UITableViewData
         delegate.window?.rootViewController = loginViewController
     }
     
+    //returning the selected post
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let post = posts[indexPath.section]
         let comments = (post["comments"] as? [PFObject]) ?? []
